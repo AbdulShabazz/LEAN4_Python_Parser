@@ -1,2 +1,3 @@
-python/definitions.json
-python/__pycache__/lean4_parser.cpython-313.pyc
+python/*.json
+python/*.csv
+python/__pycache__/**
