@@ -82,8 +82,8 @@ def parse_lean_files(directory):
 def main():
     import sys
     
-    if len(sys.argv) < 2:
-        print("Usage: python3 lean_parser.py <directory> [output_file.json]")
+    if len(sys.argv) < 3:
+        print("Usage: python3 lean_parser.py <directory> -o <output_file.json>")
         sys.exit(1)
     
     directory = sys.argv[1]
