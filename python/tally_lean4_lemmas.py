@@ -4,13 +4,13 @@ import json
 from pathlib import Path
 
 def parse_lean_files(directory):
-    """Parse all .lean files recursively and extract lemmas, theorems, and defs."""
+    """Parse all .lean files recursively and extract all lemmas, theorems, and defs for an upper bound."""
 
     results = []
 
     # Pattern to match lemma/theorem/def declarations
     pattern = re.compile(
-        r'(?P<def_type>(lemma|theorem|def))\s+',  # Declaration type
+        r'(?P<def_type>lemma|theorem|def)\s+',  # Declaration type
         re.MULTILINE | re.DOTALL
     )
 
