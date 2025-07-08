@@ -27,7 +27,6 @@ def parse_lean_files(directory):
         r'(?P<def_type>lemma|theorem|def)\s+'  # Declaration type
         r'(?P<name>[^\s\(\[:]+)'  # Name (stop at space, paren, bracket, colon)        
         r'(?P<type_instance>(?:\s*(?:\{[^}]*\}|\[[^\]]*\]|\([^)]*\)))+)'  # Optional type instances, like [∀ i, T2Space (H i)]
-        #r'(?P<params>(?:\s*\([^)]+\))*)'  # Parameters (multiple groups)
         r'\s*:\s*'  # Colon separator
         r'(?P<proof>.*?)(?=\s*:=|\s*where\b|\s*by\b|$)',  # Type/statement
         re.MULTILINE | re.DOTALL
@@ -52,13 +51,9 @@ def parse_lean_files(directory):
                 def_type = match.group('def_type')
                 name = match.group('name')
                 type_instance = match.group('type_instance')
-                #params = match.group('params').strip()
                 proof = match.group('proof').strip()
                 
-                #local_instances = []
-                
                 type_instance_defs = re.sub(r'^\s*|\s*$', '', re.sub(r'\s+', ' ', type_instance))
-                #local_instances = re.sub(r'[\n\s]+', ' ', params)
                 
                 # Clean up the statement
                 proof = re.sub(r'\s+', ' ', proof).strip()
