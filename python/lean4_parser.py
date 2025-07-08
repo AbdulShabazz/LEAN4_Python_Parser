@@ -3,7 +3,6 @@
 Simple LEAN 4 Parser - Extracts definitions in the exact requested format
 """
 
-import os
 import re
 import json
 from pathlib import Path
