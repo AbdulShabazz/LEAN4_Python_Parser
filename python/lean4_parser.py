@@ -8,6 +8,13 @@ import re
 import json
 from pathlib import Path
 
+def clean_up_params(m):
+    ws = m.group(0)
+    if '\n' in ws:
+        return '\n'  # Multiple newlines become one
+    else:
+        return ' '   # Other whitespace becomes single space
+
 def parse_lean_files(directory):
     """Parse all .lean files recursively and extract lemmas, theorems, and defs."""
     
@@ -15,15 +22,21 @@ def parse_lean_files(directory):
     
     # Pattern to match lemma/theorem/def declarations
     pattern = re.compile(
-        r'^(?:@\[[^\]]*\]\s*)*'  # Optional attributes like @[simp]
+        r'^(?P<indent>\s*)'  # Capture indentation
+        r'(?P<attributes>(?:@\[[^\]]*\]\s*)*)'  # Optional attributes like @[simp]
         r'(?:private\s+|protected\s+|noncomputable\s+)*'  # Optional modifiers
-        r'(lemma|theorem|def)\s+'  # Declaration type
-        r'([^\s\[\(:]+)'  # Name
-        r'\s*([^:]+?):'  # Parameters before the colon
-        r'(.*?)(?=\s*:=|\s*by\b|\s*where\b)',  # The statement/type
+        r'(?P<def_type>lemma|theorem|def)\s+'  # Declaration type
+        r'(?P<name>[^\s\(\[:]+)'  # Name (stop at space, paren, bracket, colon)
+        r'(?P<type_instance>(?:\[[^\]]*\]\s*)*)'  # Optional type instances, like [∀ i, T2Space (H i)]
+        r'(?P<params>(?:\s*\([^)]+\))*)'  # Parameters (multiple groups)
+        r'\s*:\s*'  # Colon separator
+        r'(?P<proof>.*?)(?=\s*:=|\s*where\b|\s*by\b|$)',  # Type/statement
         re.MULTILINE | re.DOTALL
     )
     
+    # Extract local instances (letI and haveI)    
+    local_pattern = re.compile(r'^.*\b(letI|haveI)\b.*$', re.MULTILINE)
+
     # Find all .lean files recursively
     for lean_file in Path(directory).rglob("*.lean"):
         try:
@@ -36,16 +49,19 @@ def parse_lean_files(directory):
             
             # Find all matches
             for match in pattern.finditer(content):
-                def_type = match.group(1)
-                name = match.group(2)
-                params = match.group(3).strip()
-                statement = match.group(4).strip()
+                attribs = re.sub(r'\s+$', '', match.group('attributes'))
+                def_type = match.group('def_type')
+                name = match.group('name')
+                type_instance = match.group('type_instance')
+                params = match.group('params').strip()
+                proof = match.group('proof').strip()
                 
-                # Extract local instances (letI and haveI)
-                local_instances = []
-                local_pattern = re.compile(r'(letI|haveI)\s*:\s*([^:=]+):=\s*([^,\n]+)')
+                #local_instances = []
                 
-                for local_match in local_pattern.finditer(params):
+                type_instance_defs = re.sub(r'\s+$', '', match.group('type_instance'))
+                local_instances = re.sub(r'[\n\s]+', ' ', params)
+                
+                """ for local_match in local_pattern.finditer(params):
                     inst_type = local_match.group(1)
                     inst_name = local_match.group(2).strip()
                     inst_value = local_match.group(3).strip()
@@ -57,18 +73,21 @@ def parse_lean_files(directory):
                     clean_params = clean_params.replace(inst, '')
                 
                 # Clean up whitespace
-                clean_params = re.sub(r'\s+', ' ', clean_params).strip()
-                clean_params = re.sub(r',\s*,', ',', clean_params).strip(', ')
+                clean_params = re.sub(r'\\s+', ' ', clean_params).strip()
+                clean_params = re.sub(r',\\s*,', ',', clean_params).strip(', ') """
                 
                 # Clean up the statement
-                statement = re.sub(r'\s+', ' ', statement).strip()
+                proof = re.sub(r'\s+', ' ', proof).strip()
                 
                 entry = {
-                    "title": name,
+                    "attributes": attribs,
                     "definition_type": def_type,
-                    "type_instance_definitions": clean_params,
+                    "name": name,
+                    "type_instance_definitions": type_instance_defs,
                     "local_instances": local_instances,
-                    "proof": [statement] if statement else []
+                    "proof": [proof] if proof else [],
+                    "file": str(lean_file),
+                    "line_number": ""
                 }
                 
                 results.append(entry)
@@ -82,12 +101,12 @@ def parse_lean_files(directory):
 def main():
     import sys
     
-    if len(sys.argv) < 3:
-        print("Usage: python3 lean_parser.py <directory> -o <output_file.json>")
+    if len(sys.argv) < 2:
+        print("Usage: python3 lean_parser.py <directory> <output_file.json>")
         sys.exit(1)
     
     directory = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv) > 2 else "lean_definitions.json"
+    output_file = sys.argv[2] if len(sys.argv[2]) > 2 else "definitions.json"
     
     print(f"Parsing LEAN files in {directory}...")
     definitions = parse_lean_files(directory)
@@ -96,7 +115,7 @@ def main():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(definitions, f, indent=4, ensure_ascii=False)
     
-    print(f"\nExtracted {len(definitions)} definitions to {output_file}")
+    print(f"\n{len(definitions)} definitions >> [{output_file}]")
     
     # Show summary
     summary = {}
