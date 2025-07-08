@@ -63,7 +63,6 @@ def parse_lean_files(directory):
                     "definition_type": def_type,
                     "name": name,
                     "instances": type_instance_defs,
-                    #"local_instances": local_instances,
                     "proof": [proof] if proof else [],
                     "file": str(lean_file),
                     "line_number": ""
