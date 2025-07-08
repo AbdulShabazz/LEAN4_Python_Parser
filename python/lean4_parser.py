@@ -61,21 +61,6 @@ def parse_lean_files(directory):
                 type_instance_defs = re.sub(r'\s+$', '', match.group('type_instance'))
                 local_instances = re.sub(r'[\n\s]+', ' ', params)
                 
-                """ for local_match in local_pattern.finditer(params):
-                    inst_type = local_match.group(1)
-                    inst_name = local_match.group(2).strip()
-                    inst_value = local_match.group(3).strip()
-                    local_instances.append(f"{inst_type} : {inst_name} := {inst_value}")
-                
-                # Remove local instances from params to get clean type_instance_definitions
-                clean_params = params
-                for inst in local_instances:
-                    clean_params = clean_params.replace(inst, '')
-                
-                # Clean up whitespace
-                clean_params = re.sub(r'\\s+', ' ', clean_params).strip()
-                clean_params = re.sub(r',\\s*,', ',', clean_params).strip(', ') """
-                
                 # Clean up the statement
                 proof = re.sub(r'\s+', ' ', proof).strip()
                 
