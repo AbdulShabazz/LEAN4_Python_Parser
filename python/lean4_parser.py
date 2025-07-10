@@ -3,6 +3,7 @@
 Simple LEAN 4 Parser - Extracts definitions in the exact requested format
 """
 
+import os
 import re
 import json, csv
 from pathlib import Path
@@ -86,20 +87,28 @@ def main():
         sys.exit(1)
     
     directory = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv[2]) > 2 else "definitions.json"
     
     print(f"Parsing LEAN files in {directory}...")
-    definitions = parse_lean_files(directory)
-    
-    if all_params < 4:
-        # Save to JSON with nice formatting
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(definitions, f, indent=4, ensure_ascii=False)
-    else:
-        with open(output_file, "w", newline='', encoding="utf-8") as f:
+    definitions = parse_lean_files(directory)# Extract file extension and determine format
+
+    # Get output filename from command line args or use default
+    output_file = sys.argv[2] if len(sys.argv[2]) > 2 else "definitions.json"
+
+    file_name = os.path.splitext(output_file)[0].lower()
+    file_ext = os.path.splitext(output_file)[1].lower()
+
+    # Detect format based on file extension
+    if file_ext == '.csv': # CSV format
+        output_file = f"{file_name}.csv"        
+        with open(output_file, "w", newline='', encoding="utf-8") as f:        
             writer = csv.DictWriter(f, fieldnames=definitions[0].keys())
             writer.writeheader()
-            writer.writerows(definitions)
+            writer.writerows(definitions)            
+    else: # JSON format (default for unknown extensions or no extension)
+        # Fallback: treat other extensions as JSON
+        output_file = f"{file_name}.json"        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(definitions, f, indent=4, ensure_ascii=False)
     
     print(f"\n{len(definitions)} definitions >> [{output_file}]")
     
