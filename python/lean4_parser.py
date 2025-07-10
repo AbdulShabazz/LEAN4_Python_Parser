@@ -4,7 +4,7 @@ Simple LEAN 4 Parser - Extracts definitions in the exact requested format
 """
 
 import re
-import json
+import json, csv
 from pathlib import Path
 
 def clean_up_params(m):
@@ -79,7 +79,9 @@ def parse_lean_files(directory):
 def main():
     import sys
     
-    if len(sys.argv) < 2:
+    all_params = len(sys.argv)
+
+    if all_params < 2:
         print("Usage: python3 lean_parser.py <directory> <output_file.json>")
         sys.exit(1)
     
@@ -89,9 +91,15 @@ def main():
     print(f"Parsing LEAN files in {directory}...")
     definitions = parse_lean_files(directory)
     
-    # Save to JSON with nice formatting
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(definitions, f, indent=4, ensure_ascii=False)
+    if all_params < 4:
+        # Save to JSON with nice formatting
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(definitions, f, indent=4, ensure_ascii=False)
+    else:
+        with open(output_file, "w", newline='', encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=definitions[0].keys())
+            writer.writeheader()
+            writer.writerows(definitions)
     
     print(f"\n{len(definitions)} definitions >> [{output_file}]")
     
