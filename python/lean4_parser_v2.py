@@ -29,7 +29,7 @@ def parse_lean_files(directory):
         r'(?P<name>[^\s\(\[:]+)'  # Name (stop at space, paren, bracket, colon)        
         r'(?P<type_instance>(?:\s*(?:\{[^}]*\}|\[[^\]]*\]|\([^)]*\)))+)'  # Optional type instances, like [∀ i, T2Space (H i)]
         r'\s*:\s*'  # Colon separator
-        r'(?P<proof>.*?)(?=\s*:=|\s*where\b|\s*by\b|$)',  # Type/statement
+        r'(?P<proof>.*?)(?=\s*:=\s+by\b|\s*where\b|$)',  # Type/statement
         re.MULTILINE | re.DOTALL
     )
     
