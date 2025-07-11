@@ -25,7 +25,7 @@ def parse_lean_files(directory):
         r'^(?P<indent>\s*)'  # Capture indentation
         r'(?P<attributes>(?:@\[[^\]]*\]\s*)*)'  # Optional attributes like @[simp]
         r'(?:private\s+|protected\s+|noncomputable\s+)*'  # Optional modifiers
-        r'(?P<def_type>lemma|theorem|def|class|structure|inductive)\s+'  # Declaration type - EXTENDED
+        r'(?P<def_type>lemma|theorem|def|class|structure|inductive|variable)\s+'  # Declaration type - EXTENDED
         r'(?P<name>[^\s\(\[:]+)'  # Name (stop at space, paren, bracket, colon)        
         r'(?P<type_instance>(?:\s*(?:\{[^}]*\}|\[[^\]]*\]|\([^)]*\)))+)'  # Optional type instances, like [∀ i, T2Space (H i)]
         r'\s*:\s*'  # Colon separator
