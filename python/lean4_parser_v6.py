@@ -8,11 +8,14 @@ def extract_signatures(directory):
     """Extract only the signatures (before := by, where)."""
     
     pattern = re.compile(
+        r'(?:^|\n)'  # Start of line
+        r'(?:/\-\-(?:[^-]|-(?!\/))*\-/\s*)?'  # Optional doc comment (captured)
         r'((?:@\[[^\]]*\]\s*)*'  # Optional attributes
-        r'(?:private\s+|protected\s+|noncomputable\s+)*'  # Optional modifiers
-        r'(?:lemma|theorem|def|class|structure|inductive|variable)\s+'  # Definition type
-        r'.*?)'  # Everything up to := or where
-        r'(?=\s*(?::=\s+by\b|where\b))',
+        r'(?:(?:private|protected|noncomputable|partial|unsafe|opaque)\s+)*'  # Modifiers
+        r'(?:lemma|theorem|def|class|structure|inductive|instance|example|abbrev|axiom|constant|variable)\s+'  # Definition type
+        r'[^\n]*?'  # Rest of first line
+        r'(?:\n(?!(?:/\-\-|@\[|(?:private|protected|noncomputable|partial|unsafe|opaque)?\s*(?:lemma|theorem|def|class|structure|inductive|instance|example|abbrev|axiom|constant|variable)\b)).*?)*)'  # Continuation lines
+        r'(?=\n(?:/\-\-|@\[|(?:private|protected|noncomputable|partial|unsafe|opaque)?\s*(?:lemma|theorem|def|class|structure|inductive|instance|example|abbrev|axiom|constant|variable)\b)|\Z)',  # Lookahead for next definition or EOF
         re.MULTILINE | re.DOTALL
     )
 
